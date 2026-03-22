@@ -1,0 +1,139 @@
+<!-- Copyright (c) 2026 Bintou DIOP. -->
+
+<div class="layout">
+  <header>
+    <span class="logo">♟</span>
+    <div><h1>Agent IA Échecs - FFE</h1><small>Proof of Concept</small></div>
+    <button (click)="reset()">↺ Réinitialiser</button>
+  </header>
+
+  <main>
+    <section class="board-col">
+      <div class="pos-info">
+        <span class="badge" [class.sf]="response?.source==='stockfish'">
+          {{ response?.source==='stockfish' ? '⚙ Stockfish' : '📚 Lichess' }}
+        </span>
+        <span class="opening" *ngIf="response?.opening?.name">
+          {{ response!.opening!.eco }} - {{ response!.opening!.name }}
+        </span>
+        <span class="score" *ngIf="response?.score_display"
+              [class.pos]="response!.score_display!.startsWith('+')"
+              [class.neg]="response!.score_display!.startsWith('-')">
+          {{ response!.score_display }}
+        </span>
+      </div>
+
+      <div class="board-wrapper">
+        <div class="ranks-label">
+          <span *ngFor="let r of [8,7,6,5,4,3,2,1]">{{ r }}</span>
+        </div>
+        <div class="chessboard">
+          <div *ngFor="let row of board; let r=index" class="board-row">
+            <div *ngFor="let piece of row; let f=index"
+                 class="cell" [class.light]="(r+f)%2===0" [class.dark]="(r+f)%2===1"
+                 [class.selected]="selected===r+','+f" [class.highlight]="isHighlight(r,f)"
+                 (click)="onCellClick(r,f)">
+              <span *ngIf="piece" [class.white-p]="isWhite(piece)" [class.black-p]="!isWhite(piece)">
+                {{ symbol(piece) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="files-label">
+        <span class="files-offset"></span>
+        <span *ngFor="let f of files">{{ f }}</span>
+      </div>
+
+      <div class="turn-row">
+        <div class="turn-badge">
+          {{ currentTurn==='w' ? '⬜ Trait aux Blancs' : '⬛ Trait aux Noirs' }}
+        </div>
+        <button class="btn-best" (click)="playBestMove()" [disabled]="loading || !response">
+          ▶ Jouer le meilleur coup
+        </button>
+      </div>
+
+      <div class="history" *ngIf="moveHistory.length">
+        <span *ngFor="let m of moveHistory; let i=index">
+          <b *ngIf="i%2===0">{{ i/2+1 }}.</b> {{ m }}
+        </span>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="loading" *ngIf="loading">
+        <div class="spinner"></div> Analyse en cours…
+      </div>
+      <div class="error-box" *ngIf="error && !loading">⚠ {{ error }}</div>
+
+      <div class="tabs" *ngIf="response && !loading">
+        <button [class.active]="tab==='moves'" (click)="tab='moves'">
+          Coups <span>{{ response.source==='stockfish' ? 1 : (response.moves?.length||0) }}</span>
+        </button>
+        <button [class.active]="tab==='context'" (click)="tab='context'">
+          Contexte <span>{{ response.vector_context.length||0 }}</span>
+        </button>
+        <button [class.active]="tab==='videos'" (click)="tab='videos'">
+          Vidéos <span>{{ response.videos.length||0 }}</span>
+        </button>
+      </div>
+
+      <div class="tab-body" *ngIf="response && !loading">
+
+        <ng-container *ngIf="tab==='moves'">
+          <div class="sf-card" *ngIf="response.source==='stockfish'">
+            <h3>⚙ {{ response.message }}</h3>
+            <div class="best-move">
+              Meilleur coup : <strong>{{ response.best_move_san }}</strong>
+              <code>{{ response.best_move_uci }}</code>
+              <span class="pill">{{ response.score_display }}</span>
+            </div>
+          </div>
+          <div class="move-card" *ngFor="let m of response.moves" (click)="playSuggestion(m.uci)">
+            <div class="move-top"><b>{{ m.san }}</b><code>{{ m.uci }}</code></div>
+            <div class="bar">
+              <div class="bw" [style.width.%]="m.white_win_pct"></div>
+              <div class="bd" [style.width.%]="m.draw_pct"></div>
+              <div class="bb" [style.width.%]="100-m.white_win_pct-m.draw_pct"></div>
+            </div>
+            <small>{{ m.white_win_pct }}% blancs · {{ m.total_games }} parties</small>
+          </div>
+          <p class="hint" *ngIf="!response.moves?.length && response.source==='lichess'">
+            Aucun coup théorique. Jouez votre coup !
+          </p>
+        </ng-container>
+
+        <ng-container *ngIf="tab==='context'">
+          <div class="explanation-card" *ngIf="response.explanation">
+            <div class="explanation-head">🤖 Analyse Mistral</div>
+            <p>{{ response.explanation }}</p>
+          </div>
+          <p class="hint" *ngIf="!response.vector_context?.length">Aucun contexte disponible.</p>
+          <div class="ctx-card" *ngFor="let c of response.vector_context">
+            <div class="ctx-head"><b>{{ c.opening_name }}</b><span class="sim">{{ (c.score*100).toFixed(0) }}%</span></div>
+            <p>{{ c.chunk_text }}</p>
+          </div>
+        </ng-container>
+
+        <ng-container *ngIf="tab==='videos'">
+          <div class="player" *ngIf="activeVideo">
+            <div class="player-top"><span>{{ activeVideo.title }}</span><button (click)="activeVideo=null">✕</button></div>
+            <iframe [src]="activeVideo.embed_url | trustUrl" width="100%" height="220" frameborder="0" allowfullscreen></iframe>
+          </div>
+          <p class="hint" *ngIf="!response.videos?.length">Aucune vidéo (clé YouTube requise).</p>
+          <div class="vid-card" *ngFor="let v of response.videos" (click)="activeVideo=v">
+            <img [src]="v.thumbnail" [alt]="v.title"/>
+            <div>
+              <p class="vid-title">{{ v.title }}</p>
+              <small>{{ v.channel }}</small>
+              <a [href]="v.url" target="_blank" (click)="$event.stopPropagation()">▶ YouTube</a>
+            </div>
+          </div>
+        </ng-container>
+
+      </div>
+    </section>
+  </main>
+</div>
