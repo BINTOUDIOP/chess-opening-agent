@@ -29,7 +29,7 @@ curl -s -X POST http://localhost:4200/api/v1/agent \
 
 **FEN** : `rnbqkb1r/1p2pppp/p2p1n2/8/3NP3/2N5/PPP2PPP/R1BQKB1R w KQkq - 0 7`
 
-**Situation** : Après 1.e4 c5 2.Cf3 d6 3.d4 cxd4 4.Cxd4 Cf6 5.Cc3 a6 - position centrale de la Najdorf.
+**Situation** : Après 1.e4 c5 2.Cf3 d6 3.d4 cxd4 4.Cxd4 Cf6 5.Cc3 a6, position centrale de la Najdorf.
 
 **Résultat attendu** :
 - Source : `lichess`
@@ -47,11 +47,11 @@ curl -s -X POST http://localhost:4200/api/v1/agent \
 ---
 
 ## Scénario 3 : Ruy Lopez (Partie Espagnole)
-**Ce que ça montre** : Ouverture ultra-classique jouée depuis le XVIe siècle, données Masters très riches.
+**Ce que ça montre** : Ouverture ultra classique jouée depuis le XVIe siècle, données Masters très riches.
 
 **FEN** : `r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3`
 
-**Situation** : Après 1.e4 e5 2.Cf3 Cc6 3.Fb5 - les Blancs attaquent le défenseur de e5.
+**Situation** : Après 1.e4 e5 2.Cf3 Cc6 3.Fb5, les Blancs attaquent le défenseur de e5.
 
 **Résultat attendu** :
 - Source : `lichess`
@@ -69,11 +69,11 @@ curl -s -X POST http://localhost:4200/api/v1/agent \
 ---
 
 ## Scénario 4 : Défense Française
-**Ce que ça montre** : Ouverture solide et populaire en France - pertinent pour un outil FFE.
+**Ce que ça montre** : Ouverture solide et populaire en France, pertinent pour un outil FFE.
 
 **FEN** : `rnbqkbnr/ppp2ppp/4p3/3p4/3PP3/8/PPP2PPP/RNBQKBNR w KQkq - 0 3`
 
-**Situation** : Après 1.e4 e6 2.d4 d5 - les Noirs construisent un centre solide.
+**Situation** : Après 1.e4 e6 2.d4 d5, les Noirs construisent un centre solide.
 
 **Résultat attendu** :
 - Source : `lichess`
@@ -99,8 +99,8 @@ curl -s -X POST http://localhost:4200/api/v1/agent \
 
 **Résultat attendu** :
 - Source : `stockfish`
-- Message : "Position hors théorie - analyse moteur"
-- 3 meilleures lignes avec score en centipions
+- Message : "Position hors théorie, analyse moteur"
+- 3 meilleures lignes avec score en centipawns
 - Explication basée sur l'analyse moteur
 
 ```bash
